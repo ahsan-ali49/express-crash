@@ -1,30 +1,32 @@
-const express = require('express');
-const path = require("path");
-const app = express();
+import express from 'express';
+// import path from "path";
+import posts from "./routes/posts.js"
+import logger from "./middleware/logger.js"
+import errorHandler from "./middleware/error.js"
+import notFound from "./middleware/notFound.js"
+
 const PORT = process.env.PORT || 8000;
 
-let posts = [
-    {id:1, title: "Post One"},
-    {id:2, title: "Post Two"},
-    {id:3, title: "Post Three"},
-]
+const app = express();
+
+// Body parser middleware
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
+
+// logger middleware
+app.use(logger);
 
 // Setup static folder
-app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'public')));
 
-app.get("/api/posts", (req, res)=>{
-    const limit = parseInt(req.query.limit);
-    if(!isNaN(limit) && limit > 0){
-        res.json(posts.slice(0, limit));
-    }else{
-        res.json(posts);
-    }
-})
+// Routes
+app.use("/api/posts", posts);
 
-// Get Single Post
-app.get("/api/posts/:id", (req, res)=>{
-    const id = parseInt(req.params.id);
-    res.json(posts.filter(post=>post.id === id));
-})
+
+
+// Error Handler
+app.use(notFound);
+app.use(errorHandler);
+
 
 app.listen(PORT, ()=> console.log(`Server is running on port ${PORT}`));
